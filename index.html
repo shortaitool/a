@@ -1,174 +1,472 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MultiTools Hub - Your One-Stop Tool Collection</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Custom CSS -->
-    <link href="css/style.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Admin Panel</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: #1a73e8;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .login-container {
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .login-form {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        
+        input:focus {
+            border-color: #1a73e8;
+            outline: none;
+        }
+        
+        button {
+            background: #1a73e8;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #0d5bba;
+        }
+        
+        .dashboard {
+            display: none;
+            padding: 20px;
+        }
+        
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .main-button {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 2px solid #e0e0e0;
+        }
+        
+        .main-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            border-color: #1a73e8;
+        }
+        
+        .main-button img {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 15px;
+        }
+        
+        .main-button h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .subpage {
+            display: none;
+            padding: 20px;
+        }
+        
+        .back-button {
+            background: #5f6368;
+            margin-bottom: 20px;
+        }
+        
+        .sub-button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .sub-button {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: background 0.3s;
+            border: 1px solid #dadce0;
+        }
+        
+        .sub-button:hover {
+            background: #e8f0fe;
+        }
+        
+        .admin-panel {
+            display: none;
+            padding: 20px;
+            margin-top: 30px;
+            border-top: 1px solid #eee;
+        }
+        
+        .admin-controls {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .error {
+            color: #d93025;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .success {
+            color: #1e8e3e;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #5f6368;
+            font-size: 14px;
+            border-top: 1px solid #eee;
+        }
+        
+        @media (max-width: 768px) {
+            .button-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .button-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                font-size: 20px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <!-- Header will be loaded dynamically -->
-    <div id="header-placeholder"></div>
-
-    <!-- Main Content -->
-    <main class="container my-5">
-        <!-- Hero Section -->
-        <section class="hero-section text-center mb-5">
-            <h1 class="display-4">Welcome to MultiTools Hub</h1>
-            <p class="lead">Your one-stop destination for all online tools and utilities</p>
-        </section>
-
-        <!-- Search Section -->
-        <section class="search-section mb-5">
-            <div class="row justify-content-center">
-                <div class="col-md-8">
-                    <div class="input-group">
-                        <input type="text" class="form-control form-control-lg" id="toolSearch" placeholder="Search for tools...">
-                        <button class="btn btn-primary" type="button"><i class="fas fa-search"></i></button>
-                    </div>
+    <div class="container">
+        <div class="header">
+            प्रशासनिक पैनल
+        </div>
+        
+        <div id="loginContainer" class="login-container">
+            <h2>लॉगिन करें</h2>
+            <div class="login-form">
+                <div class="form-group">
+                    <label for="email">ईमेल</label>
+                    <input type="email" id="email" placeholder="अपना ईमेल दर्ज करें">
+                </div>
+                <div class="form-group">
+                    <label for="password">पासवर्ड</label>
+                    <input type="password" id="password" placeholder="अपना पासवर्ड दर्ज करें">
+                </div>
+                <button id="loginBtn">लॉगिन</button>
+                <div id="loginError" class="error">गलत ईमेल या पासवर्ड</div>
+            </div>
+        </div>
+        
+        <div id="dashboard" class="dashboard">
+            <h2>मुख्य मेनू</h2>
+            <div class="button-grid">
+                <div class="main-button" onclick="openSubPage('upPolice')">
+                    <img src="https://cdn-icons-png.flaticon.com/512/206/206875.png" alt="UP Police">
+                    <h3>UP Police S1 2025</h3>
+                    <p>यूपी पुलिस भर्ती परीक्षा</p>
+                </div>
+                
+                <div class="main-button" onclick="openSubPage('sscCgl')">
+                    <img src="https://cdn-icons-png.flaticon.com/512/3449/3449599.png" alt="SSC CGL">
+                    <h3>SSC CGL Tier-1 2025</h3>
+                    <p>एसएससी सीजीएल परीक्षा</p>
+                </div>
+                
+                <div class="main-button" onclick="openSubPage('upssscPet')">
+                    <img src="https://cdn-icons-png.flaticon.com/512/3449/3449599.png" alt="UPSSSC PET">
+                    <h3>UPSSSC PET 2025</h3>
+                    <p>यूपीएसएसएससी पीईटी परीक्षा</p>
+                </div>
+                
+                <div class="main-button" onclick="openSubPage('upPet')">
+                    <img src="https://cdn-icons-png.flaticon.com/512/3449/3449599.png" alt="UP PET">
+                    <h3>UP PET 2025 MINI MOCK</h3>
+                    <p>यूपी पीईटी मॉक टेस्ट</p>
+                </div>
+                
+                <div class="main-button" onclick="openSubPage('rajasthanPolice')">
+                    <img src="https://cdn-icons-png.flaticon.com/512/206/206875.png" alt="Rajasthan Police">
+                    <h3>Rajasthan Police Constable Special Mock Test</h3>
+                    <p>राजस्थान पुलिस भर्ती परीक्षा</p>
                 </div>
             </div>
-        </section>
-
-        <!-- Tool Categories -->
-        <section class="tool-categories">
-            <!-- Image Tools -->
-            <div class="category-section mb-5">
-                <h2 class="mb-4">Image Tools</h2>
-                <div class="row g-4">
-                    <div class="col-md-4 col-lg-3">
-                        <div class="tool-card">
-                            <div class="card h-100">
-                                <div class="card-body text-center">
-                                    <i class="fas fa-image fa-3x mb-3 text-primary"></i>
-                                    <h5 class="card-title">Image to PNG</h5>
-                                    <p class="card-text">Convert images to PNG format</p>
-                                    <a href="tools/image-to-png.html" class="btn btn-primary">Use Tool</a>
-                                </div>
-                            </div>
-                        </div>
+            
+            <div class="admin-panel" id="adminPanel">
+                <h2>प्रशासनिक नियंत्रण</h2>
+                <div class="admin-controls">
+                    <div class="form-group">
+                        <label for="buttonTitle">बटन शीर्षक</label>
+                        <input type="text" id="buttonTitle" placeholder="बटन का शीर्षक दर्ज करें">
                     </div>
-                    <div class="col-md-4 col-lg-3">
-                        <div class="tool-card">
-                            <div class="card h-100">
-                                <div class="card-body text-center">
-                                    <i class="fas fa-compress-arrows-alt fa-3x mb-3 text-primary"></i>
-                                    <h5 class="card-title">Image Resizer</h5>
-                                    <p class="card-text">Resize images while maintaining quality</p>
-                                    <a href="tools/image-resizer.html" class="btn btn-primary">Use Tool</a>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="form-group">
+                        <label for="buttonDescription">बटन विवरण</label>
+                        <input type="text" id="buttonDescription" placeholder="बटन का विवरण दर्ज करें">
                     </div>
+                    <button id="addButton">बटन जोड़ें</button>
+                    <div id="adminSuccess" class="success">बटन सफलतापूर्वक जोड़ा गया</div>
+                    <div id="adminError" class="error">त्रुटि हुई, पुनः प्रयास करें</div>
                 </div>
             </div>
-
-            <!-- SEO Tools -->
-            <div class="category-section mb-5">
-                <h2 class="mb-4">SEO Tools</h2>
-                <div class="row g-4">
-                    <div class="col-md-4 col-lg-3">
-                        <div class="tool-card">
-                            <div class="card h-100">
-                                <div class="card-body text-center">
-                                    <i class="fas fa-search fa-3x mb-3 text-primary"></i>
-                                    <h5 class="card-title">Keyword Density</h5>
-                                    <p class="card-text">Analyze keyword density in your text</p>
-                                    <a href="tools/keyword-density.html" class="btn btn-primary">Use Tool</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 col-lg-3">
-                        <div class="tool-card">
-                            <div class="card h-100">
-                                <div class="card-body text-center">
-                                    <i class="fas fa-file-alt fa-3x mb-3 text-primary"></i>
-                                    <h5 class="card-title">Meta Tag Generator</h5>
-                                    <p class="card-text">Generate SEO-friendly meta tags</p>
-                                    <a href="tools/meta-tag-generator.html" class="btn btn-primary">Use Tool</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        </div>
+        
+        <div id="upPolice" class="subpage">
+            <button class="back-button" onclick="goBack()">वापस जाएं</button>
+            <h2>UP Police S1 2025</h2>
+            <div class="sub-button-grid">
+                <div class="sub-button">मॉक टेस्ट</div>
+                <div class="sub-button">पिछले प्रश्न पत्र</div>
+                <div class="sub-button">अध्ययन सामग्री</div>
+                <div class="sub-button">सिलेबस</div>
+                <div class="sub-button">परीक्षा की तैयारी</div>
+                <div class="sub-button">विज्ञापन</div>
             </div>
-
-            <!-- Calculators -->
-            <div class="category-section mb-5">
-                <h2 class="mb-4">Calculators</h2>
-                <div class="row g-4">
-                    <div class="col-md-4 col-lg-3">
-                        <div class="tool-card">
-                            <div class="card h-100">
-                                <div class="card-body text-center">
-                                    <i class="fas fa-calculator fa-3x mb-3 text-primary"></i>
-                                    <h5 class="card-title">Scientific Calculator</h5>
-                                    <p class="card-text">Advanced mathematical calculations</p>
-                                    <a href="tools/scientific-calculator.html" class="btn btn-primary">Use Tool</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 col-lg-3">
-                        <div class="tool-card">
-                            <div class="card h-100">
-                                <div class="card-body text-center">
-                                    <i class="fas fa-percentage fa-3x mb-3 text-primary"></i>
-                                    <h5 class="card-title">Percentage Calculator</h5>
-                                    <p class="card-text">Calculate percentages easily</p>
-                                    <a href="tools/percentage-calculator.html" class="btn btn-primary">Use Tool</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        </div>
+        
+        <div id="sscCgl" class="subpage">
+            <button class="back-button" onclick="goBack()">वापस जाएं</button>
+            <h2>SSC CGL Tier-1 2025</h2>
+            <div class="sub-button-grid">
+                <div class="sub-button">मॉक टेस्ट</div>
+                <div class="sub-button">पिछले प्रश्न पत्र</div>
+                <div class="sub-button">अध्ययन सामग्री</div>
+                <div class="sub-button">सिलेबस</div>
+                <div class="sub-button">परीक्षा की तैयारी</div>
+                <div class="sub-button">विज्ञापन</div>
             </div>
-
-            <!-- Developer Tools -->
-            <div class="category-section mb-5">
-                <h2 class="mb-4">Developer Tools</h2>
-                <div class="row g-4">
-                    <div class="col-md-4 col-lg-3">
-                        <div class="tool-card">
-                            <div class="card h-100">
-                                <div class="card-body text-center">
-                                    <i class="fas fa-code fa-3x mb-3 text-primary"></i>
-                                    <h5 class="card-title">JSON Formatter</h5>
-                                    <p class="card-text">Format and validate JSON data</p>
-                                    <a href="tools/json-formatter.html" class="btn btn-primary">Use Tool</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 col-lg-3">
-                        <div class="tool-card">
-                            <div class="card h-100">
-                                <div class="card-body text-center">
-                                    <i class="fas fa-terminal fa-3x mb-3 text-primary"></i>
-                                    <h5 class="card-title">Base64 Encoder</h5>
-                                    <p class="card-text">Encode/decode Base64 strings</p>
-                                    <a href="tools/base64-encoder.html" class="btn btn-primary">Use Tool</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        </div>
+        
+        <div id="upssscPet" class="subpage">
+            <button class="back-button" onclick="goBack()">वापस जाएं</button>
+            <h2>UPSSSC PET 2025</h2>
+            <div class="sub-button-grid">
+                <div class="sub-button">मॉक टेस्ट</div>
+                <div class="sub-button">पिछले प्रश्न पत्र</div>
+                <div class="sub-button">अध्ययन सामग्री</div>
+                <div class="sub-button">सिलेबस</div>
+                <div class="sub-button">परीक्षा की तैयारी</div>
+                <div class="sub-button">विज्ञापन</div>
             </div>
-        </section>
-    </main>
+        </div>
+        
+        <div id="upPet" class="subpage">
+            <button class="back-button" onclick="goBack()">वापस जाएं</button>
+            <h2>UP PET 2025 MINI MOCK</h2>
+            <div class="sub-button-grid">
+                <div class="sub-button">मॉक टेस्ट 1</div>
+                <div class="sub-button">मॉक टेस्ट 2</div>
+                <div class="sub-button">मॉक टेस्ट 3</div>
+                <div class="sub-button">मॉक टेस्ट 4</div>
+                <div class="sub-button">मॉक टेस्ट 5</div>
+                <div class="sub-button">सभी मॉक टेस्ट</div>
+            </div>
+        </div>
+        
+        <div id="rajasthanPolice" class="subpage">
+            <button class="back-button" onclick="goBack()">वापस जाएं</button>
+            <h2>Rajasthan Police Constable Special Mock Test</h2>
+            <div class="sub-button-grid">
+                <div class="sub-button">मॉक टेस्ट</div>
+                <div class="sub-button">पिछले प्रश्न पत्र</div>
+                <div class="sub-button">अध्ययन सामग्री</div>
+                <div class="sub-button">सिलेबस</div>
+                <div class="sub-button">शारीरिक परीक्षण</div>
+                <div class="sub-button">विज्ञापन</div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            © 2025 Admin Panel. सभी अधिकार सुरक्षित
+        </div>
+    </div>
 
-    <!-- Footer will be loaded dynamically -->
-    <div id="footer-placeholder"></div>
-
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Custom JS -->
-    <script src="js/main.js"></script>
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyB0ZKcpIQEnBXHzPsfVNlwdL9Y-iJ4diZY",
+            authDomain: "test-246af.firebaseapp.com",
+            projectId: "test-246af",
+            storageBucket: "test-246af.firebasestorage.app",
+            messagingSenderId: "1025448533875",
+            appId: "1:1025448533875:web:465de230000c809a1cef06"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        
+        // DOM elements
+        const loginContainer = document.getElementById('loginContainer');
+        const dashboard = document.getElementById('dashboard');
+        const adminPanel = document.getElementById('adminPanel');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginError = document.getElementById('loginError');
+        const addButtonBtn = document.getElementById('addButton');
+        const adminSuccess = document.getElementById('adminSuccess');
+        const adminError = document.getElementById('adminError');
+        
+        // Check if user is logged in
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                // User is signed in
+                loginContainer.style.display = 'none';
+                dashboard.style.display = 'block';
+                
+                // Check if user is admin
+                if (user.email === 'admin@example.com') {
+                    adminPanel.style.display = 'block';
+                }
+            } else {
+                // User is signed out
+                loginContainer.style.display = 'block';
+                dashboard.style.display = 'none';
+            }
+        });
+        
+        // Login function
+        loginBtn.addEventListener('click', () => {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Signed in 
+                    loginError.style.display = 'none';
+                })
+                .catch((error) => {
+                    loginError.style.display = 'block';
+                });
+        });
+        
+        // Open sub page function
+        function openSubPage(pageId) {
+            document.querySelectorAll('.subpage').forEach(page => {
+                page.style.display = 'none';
+            });
+            document.getElementById(pageId).style.display = 'block';
+            dashboard.style.display = 'none';
+        }
+        
+        // Go back to main dashboard
+        function goBack() {
+            document.querySelectorAll('.subpage').forEach(page => {
+                page.style.display = 'none';
+            });
+            dashboard.style.display = 'block';
+        }
+        
+        // Add button function for admin
+        addButtonBtn.addEventListener('click', () => {
+            const title = document.getElementById('buttonTitle').value;
+            const description = document.getElementById('buttonDescription').value;
+            
+            if (title && description) {
+                db.collection('buttons').add({
+                    title: title,
+                    description: description,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                })
+                .then(() => {
+                    adminSuccess.style.display = 'block';
+                    adminError.style.display = 'none';
+                    document.getElementById('buttonTitle').value = '';
+                    document.getElementById('buttonDescription').value = '';
+                    
+                    // Hide success message after 3 seconds
+                    setTimeout(() => {
+                        adminSuccess.style.display = 'none';
+                    }, 3000);
+                })
+                .catch((error) => {
+                    adminError.style.display = 'block';
+                    adminSuccess.style.display = 'none';
+                });
+            } else {
+                adminError.style.display = 'block';
+                adminSuccess.style.display = 'none';
+            }
+        });
+    </script>
 </body>
-</html> 
+</html>
